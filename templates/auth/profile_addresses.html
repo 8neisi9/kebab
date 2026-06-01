@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Мои адреса - Shoe35{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Навигация по вкладкам -->
+    <div class="profile-tabs">
+        <a href="{{ url_for('profile', tab='profile') }}" class="profile-tab">
+            <i class="fas fa-user"></i> Профиль
+        </a>
+        <a href="{{ url_for('profile', tab='orders') }}" class="profile-tab">
+            <i class="fas fa-shopping-bag"></i> Заказы
+        </a>
+        <a href="{{ url_for('profile', tab='addresses') }}" class="profile-tab active">
+            <i class="fas fa-map-marker-alt"></i> Адреса
+        </a>
+        <a href="{{ url_for('profile', tab='support') }}" class="profile-tab">
+            <i class="fas fa-headset"></i> Обращения
+        </a>
+    </div>
+    
+    <div class="profile-content">
+        <div class="profile-header">
+            <h1><i class="fas fa-map-marker-alt"></i> Мои адреса</h1>
+            <p class="profile-subtitle">Управляйте адресами доставки</p>
+        </div>
+
+        <!-- Список адресов -->
+        {% if addresses %}
+        <div class="addresses-grid">
+            {% for address in addresses %}
+            <div class="address-card {% if address.is_default %}default-address{% endif %}">
+                <div class="address-header">
+                    <h3>
+                        {{ address.title }}
+                        {% if address.is_default %}
+                        <span class="default-badge">Основной</span>
+                        {% endif %}
+                    </h3>
+                    <div class="address-actions">
+                        <!-- Редактирование пока не реализуем, только удаление -->
+                        <a href="{{ url_for('delete_address', address_id=address.id) }}"
+                           class="btn-icon delete-address">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="address-info">
+                    <p><strong>{{ address.full_name }}</strong></p>
+                    <p>{{ address.phone }}</p>
+                    <p>
+                        {{ address.country }}, {{ address.city }}<br>
+                        {{ address.street }}, д. {{ address.house }}
+                        {% if address.apartment %}, кв. {{ address.apartment }}{% endif %}
+                    </p>
+                    {% if address.postal_code %}
+                    <p>Индекс: {{ address.postal_code }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-map-marker-alt" style="font-size: 48px; color: #ddd; margin-bottom: 20px;"></i>
+            <h3 style="color: #333; margin-bottom: 10px;">Адресов пока нет</h3>
+            <p style="color: #666; margin-bottom: 25px;">Добавьте адрес для удобства оформления заказов</p>
+        </div>
+        {% endif %}
+
+        <!-- Заголовок формы добавления адреса -->
+        <div class="add-address-section">
+            <h3 style="margin-bottom: 10px;">Добавить новый адрес</h3>
+            <p style="color:#666; font-size:12px;">
+                Заполните форму ниже, чтобы сохранить адрес доставки.
+            </p>
+        </div>
+
+        <!-- Форма добавления адреса -->
+        <div id="address-form-container">
+            <div class="form-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Новый адрес</h3>
+
+                <form method="POST" action="{{ url_for('save_address') }}" id="address-form">
+                    <input type="hidden" id="address_id" name="address_id" value="">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="title">Название адреса:</label>
+                            <select id="title" name="title" class="form-control" required>
+                                <option value="Дом">Дом</option>
+                                <option value="Работа">Работа</option>
+                                <option value="Родители">Родители</option>
+                                <option value="Другое">Другое</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="full_name">ФИО:</label>
+                            <input type="text" id="full_name" name="full_name"
+                                   class="form-control" required
+                                   placeholder="Иванов Иван Иванович">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Телефон:</label>
+                        <input type="tel" id="phone" name="phone"
+                               class="form-control" required
+                               placeholder="+7 (999) 123-45-67">
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="country">Страна:</label>
+                            <input type="text" id="country" name="country"
+                                   class="form-control" value="Россия" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="city">Город:</label>
+                            <input type="text" id="city" name="city"
+                                   class="form-control" required
+                                   placeholder="Москва">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="street">Улица:</label>
+                            <input type="text" id="street" name="street"
+                                   class="form-control" required
+                                   placeholder="ул. Примерная">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="house">Дом:</label>
+                            <input type="text" id="house" name="house"
+                                   class="form-control" required
+                                   placeholder="123">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="apartment">Квартира/Офис:</label>
+                            <input type="text" id="apartment" name="apartment"
+                                   class="form-control" placeholder="45">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="postal_code">Почтовый индекс:</label>
+                            <input type="text" id="postal_code" name="postal_code"
+                                   class="form-control" placeholder="123456">
+                        </div>
+                    </div>
+
+                    <div class="form-group form-check">
+                        <input type="checkbox" id="is_default" name="is_default" class="form-check-input">
+                        <label for="is_default" class="form-check-label">
+                            Сделать основным адресом доставки
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn">
+                            <i class="fas fa-save"></i> Сохранить адрес
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Твои старые стили для адресов (addresses-grid, address-card и т.п.) оставь как есть */
+</style>
+{% endblock %}

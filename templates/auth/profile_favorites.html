@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Избранное - Shoe35{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Навигация по вкладкам -->
+    <div class="profile-tabs">
+        <a href="{{ url_for('profile', tab='profile') }}" class="profile-tab">
+            <i class="fas fa-user"></i> Профиль
+        </a>
+        <a href="{{ url_for('profile', tab='orders') }}" class="profile-tab">
+            <i class="fas fa-shopping-bag"></i> Заказы
+        </a>
+        <a href="{{ url_for('profile', tab='addresses') }}" class="profile-tab">
+            <i class="fas fa-map-marker-alt"></i> Адреса
+        </a>
+        <a href="{{ url_for('profile', tab='support') }}" class="profile-tab">
+            <i class="fas fa-headset"></i> Обращения
+        </a>
+        <a href="{{ url_for('profile', tab='favorites') }}" class="profile-tab active">
+            <i class="fas fa-heart"></i> Избранное
+            <span class="tab-badge">{{ favorites|length if favorites else 0 }}</span>
+        </a>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-header">
+            <h1><i class="fas fa-heart"></i> Избранные товары</h1>
+            <p class="profile-subtitle">Товары, которые вы отметили как избранные</p>
+        </div>
+
+        {% if favorites %}
+        <div class="products-grid">
+            {% for fav in favorites %}
+            {% set product = fav.product %}
+            <div class="product-card"
+                 onclick="window.location='{{ url_for('product_detail', product_id=product.id) }}'">
+
+                {% if product.main_image %}
+                    <img src="{{ product.main_image }}" alt="{{ product.name }}" class="product-image"
+                         width="280" height="374"
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/280x374/e0e0e0/333?text=No+Image';">
+                {% else %}
+                    <img src="https://via.placeholder.com/280x374/e0e0e0/333?text=No+Image"
+                         alt="{{ product.name }}" class="product-image"
+                         width="280" height="374">
+                {% endif %}
+
+                <div class="product-info">
+                    <h3 class="product-title">{{ product.name }}</h3>
+                    <div class="product-price">{{ product.price }} ₽</div>
+
+                    <form method="POST"
+                          action="{{ url_for('toggle_favorite', product_id=product.id) }}"
+                          style="margin-top:8px;"
+                          onclick="event.stopPropagation();">
+                        <button type="submit" class="btn btn-danger" style="padding:8px 12px; font-size:12px;">
+                            <i class="fas fa-times"></i> Удалить из избранного
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-heart" style="font-size: 48px; color: #ddd; margin-bottom: 20px;"></i>
+            <h3 style="color: #333; margin-bottom: 10px;">Нет избранных товаров</h3>
+            <p style="color: #666; margin-bottom: 25px;">Добавьте товары в избранное на странице товара или в каталоге</p>
+            <a href="{{ url_for('index') }}" class="btn">
+                <i class="fas fa-shopping-cart"></i> Перейти к покупкам
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

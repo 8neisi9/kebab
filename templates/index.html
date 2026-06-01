@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Shoe35 - Магазин обуви{% endblock %}
+
+{% block content %}
+<div class="category-filter">
+    <a href="{{ url_for('index', category='all', search=search) }}"
+       class="category-btn {% if current_category == 'all' %}active{% endif %}">
+        Все товары
+    </a>
+    {% for category in categories %}
+    {% if category != 'all' %}
+    <a href="{{ url_for('index', category=category, search=search) }}"
+       class="category-btn {% if current_category == category %}active{% endif %}">
+        {% if category == 'sneakers' %}Кроссовки
+        {% elif category == 'boots' %}Ботинки
+        {% elif category == 'casual' %}Повседневная
+        {% elif category == 'sports' %}Спортивная
+        {% else %}{{ category }}
+        {% endif %}
+    </a>
+    {% endif %}
+    {% endfor %}
+</div>
+
+{% if products %}
+<div class="products-grid">
+    {% for product in products %}
+    <div class="product-card">
+        {% if product.main_image %}
+            <img src="{{ product.main_image }}" alt="{{ product.name }}"
+                 class="product-image"
+                 width="280" height="374">
+        {% else %}
+            <img src="https://via.placeholder.com/280x374/e0e0e0/333?text=No+Image"
+                 alt="{{ product.name }}" class="product-image"
+                 width="280" height="374">
+        {% endif %}
+
+        <div class="product-info">
+            <h3 class="product-title">{{ product.name }}</h3>
+            <div class="product-details">
+                <p><strong>Бренд:</strong> {{ product.brand or 'Не указан' }}</p>
+                <p><strong>Размеры:</strong> {{ product.available_sizes.replace(',', ', ') if product.available_sizes else 'Не указаны' }}</p>
+            </div>
+            <div class="product-price">{{ product.price }} ₽</div>
+
+            <div style="display:flex; gap:6px; margin-top:5px; align-items:center;">
+                <a href="{{ url_for('product_detail', product_id=product.id) }}"
+                   class="btn btn-view">
+                    <i class="fas fa-info-circle"></i> Подробнее
+                </a>
+
+                {% if current_user.is_authenticated %}
+                <form method="POST"
+                      action="{{ url_for('toggle_favorite', product_id=product.id) }}"
+                      style="margin:0;">
+                    <button type="submit"
+                            class="btn"
+                            style="padding:6px 10px; font-size:12px;
+                                   background:{% if product.id in favorite_product_ids %}#e74c3c{% else %}#f0f0f0{% endif %};
+                                   color:{% if product.id in favorite_product_ids %}#fff{% else %}#333{% endif %};">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            {% if product.available %}
+                {% if current_user.is_authenticated %}
+                <form method="POST" action="{{ url_for('add_to_cart') }}" style="margin-top:5px;">
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <input type="hidden" name="size" value="{{ product.available_sizes.split(',')[0] if product.available_sizes else '' }}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn btn-add-to-cart">
+                        <i class="fas fa-shopping-cart"></i> В корзину
+                    </button>
+                </form>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-add-to-cart" style="margin-top: 5px;">
+                    <i class="fas fa-sign-in-alt"></i> Купить
+                </a>
+                {% endif %}
+            {% else %}
+                <button class="btn" disabled
+                        style="width: 100%; margin-top: 5px; background: #999; font-size: 11px; padding: 8px 10px;">
+                    Нет в наличии
+                </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align: center; padding: 40px;">
+    <h2 style="color: #333; margin-bottom: 15px; font-size: 18px;">Товары не найдены</h2>
+    <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Попробуйте изменить критерии поиска</p>
+    {% if current_user.is_authenticated and current_user.is_admin %}
+    <a href="{{ url_for('admin_panel') }}" class="btn" style="padding: 10px 20px; font-size: 12px;">
+        <i class="fas fa-plus"></i> Добавить товары
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

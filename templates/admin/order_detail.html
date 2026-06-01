@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Заказ {{ order.order_number }} - Админ панель - Shoe35{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1><i class="fas fa-shopping-bag"></i> Заказ {{ order.order_number }}</h1>
+        <a href="{{ url_for('admin_orders') }}" class="btn btn-view">
+            <i class="fas fa-arrow-left"></i> К списку заказов
+        </a>
+    </div>
+
+    <div class="ticket-detail-container">
+        <div class="ticket-info-section">
+            <h2><i class="fas fa-info-circle"></i> Информация о заказе</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Номер заказа:</span>
+                    <span class="info-value">{{ order.order_number }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Пользователь:</span>
+                    <span class="info-value">{{ order.user.username }} ({{ order.user.email }})</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Статус:</span>
+                    <span class="info-value status-badge status-{{ order.status }}">
+                        {% if order.status == 'pending' %}Ожидает
+                        {% elif order.status == 'processing' %}В обработке
+                        {% elif order.status == 'shipped' %}Отправлен
+                        {% elif order.status == 'delivered' %}Доставлен
+                        {% elif order.status == 'cancelled' %}Отменен
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Дата создания:</span>
+                    <span class="info-value">{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Сумма:</span>
+                    <span class="info-value">{{ order.total_amount }} ₽</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Оплата:</span>
+                    <span class="info-value">
+                        {{ 'Наличными' if order.payment_method == 'cash' else 'Картой' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="message-section">
+            <h2><i class="fas fa-box"></i> Товары</h2>
+            {% for item in order.items %}
+            <div class="order-item" style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+                <div>
+                    <strong>{{ item.product_name }}</strong><br>
+                    <small>Размер: {{ item.size }}, Кол-во: {{ item.quantity }}</small>
+                </div>
+                <div style="font-weight:bold;">{{ item.price * item.quantity }} ₽</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="message-section">
+            <h2><i class="fas fa-map-marker-alt"></i> Адрес доставки</h2>
+            <p style="margin:0;">{{ order.shipping_address }}</p>
+        </div>
+
+        {% if order.notes %}
+        <div class="message-section">
+            <h2><i class="fas fa-sticky-note"></i> Примечания</h2>
+            <p style="margin:0;">{{ order.notes }}</p>
+        </div>
+        {% endif %}
+
+        <div class="message-section">
+            <h2><i class="fas fa-edit"></i> Изменить статус</h2>
+            <form method="POST" action="{{ url_for('admin_change_order_status', order_id=order.id) }}">
+                <div class="form-group">
+                    <select name="status" class="form-control">
+                        <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Ожидает</option>
+                        <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>В обработке</option>
+                        <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Отправлен</option>
+                        <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Доставлен</option>
+                        <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Отменен</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">
+                    <i class="fas fa-save"></i> Сохранить
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

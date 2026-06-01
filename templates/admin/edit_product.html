@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Редактировать товар - Shoe35{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <h1 style="color: #333; margin-bottom: 30px;">Редактировать товар: {{ product.name }}</h1>
+
+    <!-- ИЗМЕНИТЕ ЭТУ СТРОКУ: action должно вести на edit_product -->
+    <form method="POST" action="{{ url_for('edit_product', product_id=product.id) }}">
+        <div class="form-group">
+            <label for="name">Название товара:</label>
+            <input type="text" id="name" name="name" class="form-control" value="{{ product.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Описание:</label>
+            <textarea id="description" name="description" class="form-control" rows="4" required>{{ product.description }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Цена (₽):</label>
+            <input type="number" id="price" name="price" class="form-control" step="0.01" min="0" value="{{ product.price }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Категория:</label>
+            <select id="category" name="category" class="form-control" required>
+                <option value="sneakers" {% if product.category == 'sneakers' %}selected{% endif %}>Кроссовки</option>
+                <option value="boots" {% if product.category == 'boots' %}selected{% endif %}>Ботинки</option>
+                <option value="formal" {% if product.category == 'formal' %}selected{% endif %}>Туфли</option>
+                <option value="casual" {% if product.category == 'casual' %}selected{% endif %}>Повседневная обувь</option>
+                <option value="sports" {% if product.category == 'sports' %}selected{% endif %}>Спортивная обувь</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Доступные размеры:</label>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                {% for size in sizes %}
+                <label style="display: flex; align-items: center; gap: 8px; color: #333;">
+                    <input type="checkbox" name="sizes" value="{{ size }}"
+                           {% if size in selected_sizes %}checked{% endif %}>
+                    {{ size }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="color">Цвет:</label>
+            <input type="text" id="color" name="color" class="form-control" value="{{ product.color }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="material">Материал:</label>
+            <input type="text" id="material" name="material" class="form-control" value="{{ product.material }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="brand">Бренд:</label>
+            <input type="text" id="brand" name="brand" class="form-control" value="{{ product.brand }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="main_image">URL главного изображения:</label>
+            <input type="text" id="main_image" name="main_image" class="form-control" value="{{ product.main_image }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="image2">URL второго изображения:</label>
+            <input type="text" id="image2" name="image2" class="form-control" value="{{ product.image2 or '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="image3">URL третьего изображения:</label>
+            <input type="text" id="image3" name="image3" class="form-control" value="{{ product.image3 or '' }}">
+        </div>
+
+        <div class="form-group form-check">
+            <input type="checkbox" id="available" name="available" class="form-check-input"
+                   {% if product.available %}checked{% endif %}>
+            <label for="available" class="form-check-label">
+                Товар в наличии
+            </label>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 30px;">
+            <button type="submit" class="btn" style="flex: 1; padding: 15px;">
+                Сохранить изменения
+            </button>
+            <a href="{{ url_for('admin_panel') }}" class="btn btn-view" style="flex: 1; padding: 15px; text-align: center;">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

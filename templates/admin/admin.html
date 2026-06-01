@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Админ панель - Shoe35{% endblock %}
+
+{% block content %}
+<h1 style="color: #333; margin-bottom: 20px;">Административная панель</h1>
+
+<div style="margin: 20px 0; display:flex; gap:10px; flex-wrap:wrap;">
+    <a href="{{ url_for('add_product') }}" class="btn" style="padding: 12px 25px;">
+        <i class="fas fa-plus"></i> Добавить новый товар
+    </a>
+    <a href="{{ url_for('admin_orders') }}" class="btn btn-view" style="padding: 12px 25px;">
+        <i class="fas fa-shopping-bag"></i> Заказы
+    </a>
+    <a href="{{ url_for('admin_support') }}" class="btn btn-view" style="padding: 12px 25px;">
+        <i class="fas fa-headset"></i> Обращения
+    </a>
+</div>
+
+<div style="overflow-x: auto;">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Изображение</th>
+                <th>Название</th>
+                <th>Цена</th>
+                <th>Категория</th>
+                <th>Размеры</th>
+                <th>Наличие</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.id }}</td>
+                <td>
+                    <img src="{{ product.main_image }}" alt="{{ product.name }}"
+                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                </td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.price }} ₽</td>
+                <td>
+                    {% if product.category == 'sneakers' %}Кроссовки
+                    {% elif product.category == 'boots' %}Ботинки
+                    {% elif product.category == 'formal' %}Туфли
+                    {% elif product.category == 'casual' %}Повседневная
+                    {% elif product.category == 'sports' %}Спортивная
+                    {% else %}{{ product.category }}
+                    {% endif %}
+                </td>
+                <td>{{ product.available_sizes.replace(',', ', ') }}</td>
+                <td>
+                    {% if product.available %}
+                        <span style="color: #27ae60;">✓ В наличии</span>
+                    {% else %}
+                        <span style="color: #e74c3c;">✗ Нет в наличии</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="admin-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <a href="{{ url_for('edit_product', product_id=product.id) }}"
+                           class="btn" style="padding: 8px 15px; font-size: 12px;">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+                        <a href="{{ url_for('delete_product', product_id=product.id) }}"
+                           class="btn btn-danger" style="padding: 8px 15px; font-size: 12px;">
+                            <i class="fas fa-trash"></i> Удалить
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

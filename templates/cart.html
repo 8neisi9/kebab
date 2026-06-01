@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Корзина - Shoe35{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <h1 style="margin-bottom: 30px; color: #333;">Корзина покупок</h1>
+
+    {% if cart_items %}
+    <div class="cart-items">
+        {% for item in cart_items %}
+        <div class="cart-item">
+            <img src="{{ item.product.main_image }}" alt="{{ item.product.name }}"
+                 style="width: 120px; height: 120px; object-fit: cover; border-radius: 5px;">
+
+            <div style="flex: 1;">
+                <h3 style="color: #333; margin-bottom: 10px;">{{ item.product.name }}</h3>
+                <div style="color: #666; margin-bottom: 5px;">Размер: {{ item.size }}</div>
+                <div style="color: #333; margin-bottom: 15px;">
+                    Цена: {{ item.product.price }} ₽ × {{ item.quantity }} шт.
+                </div>
+                <div style="color: #000; font-size: 20px; font-weight: bold; margin-bottom: 15px;">
+                    {{ item.product.price * item.quantity }} ₽
+                </div>
+
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <form method="POST" action="{{ url_for('update_cart') }}" style="display: flex; align-items: center; gap: 10px;">
+                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #666; font-size: 14px;">Количество:</span>
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="10"
+                                   style="width: 60px; padding: 8px; border: 1px solid #ddd; color: #333; border-radius: 5px;">
+                        </div>
+                        <button type="submit" class="btn" style="padding: 8px 15px; font-size: 12px;">
+                            Обновить
+                        </button>
+                    </form>
+
+                    <a href="{{ url_for('remove_from_cart', item_id=item.id) }}"
+                       class="btn btn-danger"
+                       style="padding: 8px 15px; font-size: 12px;">
+                        Удалить
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="cart-summary">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: #333;">Итого:</h2>
+                <div style="color: #000; font-size: 32px; font-weight: bold;">{{ total }} ₽</div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <a href="{{ url_for('checkout') }}" class="btn" style="flex: 1; text-align: center; padding: 15px;">
+                    Оформить заказ
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-view" style="flex: 1; text-align: center; padding: 15px;">
+                    Продолжить покупки
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="cart-empty" style="text-align: center; padding: 50px;">
+        <i class="fas fa-shopping-cart" style="font-size: 60px; color: #ddd; margin-bottom: 20px;"></i>
+        <h2 style="color: #333; margin-bottom: 15px;">Ваша корзина пуста</h2>
+        <p style="color: #666; margin-bottom: 30px;">Добавьте товары из каталога</p>
+        <a href="{{ url_for('index') }}" class="btn" style="padding: 12px 30px;">
+            Перейти к покупкам
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

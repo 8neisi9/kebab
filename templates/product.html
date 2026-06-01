@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Shoe35{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    <div class="product-images">
+        {% if images %}
+        <img src="{{ images[0] }}" alt="{{ product.name }}"
+             class="main-product-image"
+             width="500" height="666">
+
+        {% if images|length > 1 %}
+        <div class="product-thumbnails">
+            {% for image in images %}
+            <img src="{{ image }}" alt="{{ product.name }} - фото {{ loop.index }}"
+                 class="thumbnail">
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% else %}
+        <img src="{{ product.main_image or 'https://via.placeholder.com/500x666/e0e0e0/333?text=No+Image' }}"
+             alt="{{ product.name }}" class="main-product-image"
+             width="500" height="666">
+        {% endif %}
+    </div>
+
+    <div>
+        <div class="product-detail-info">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                <h1 class="product-detail-title">{{ product.name }}</h1>
+                {% if current_user.is_authenticated %}
+                <form method="POST"
+                      action="{{ url_for('toggle_favorite', product_id=product.id) }}"
+                      style="margin:0;">
+                    <button type="submit"
+                            class="btn"
+                            style="padding:8px 10px; border-radius:50%;
+                                   background:{% if user_has_favorited %}#e74c3c{% else %}#f0f0f0{% endif %};
+                                   color:{% if user_has_favorited %}#fff{% else %}#333{% endif %};">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            <div class="product-price product-detail-price">{{ product.price }} ₽</div>
+
+            {% if avg_rating %}
+            <div style="margin:5px 0 15px; color:#f1c40f; font-size:14px;">
+                ⭐ {{ avg_rating }} / 5
+                <span style="color:#666; font-size:12px;">({{ reviews|length }} отзыв{{ 'а' if reviews|length in [2,3,4] else '' }})</span>
+            </div>
+            {% else %}
+            <div style="margin:5px 0 15px; color:#666; font-size:13px;">
+                Отзывов пока нет
+            </div>
+            {% endif %}
+
+            <p class="product-detail-description">{{ product.description }}</p>
+
+            <form method="POST" action="{{ url_for('add_to_cart') }}">
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+
+                <div class="form-group">
+                    <label for="size_select">Выберите размер:</label>
+                    <select id="size_select" name="size" class="form-control" required>
+                        {% for size in sizes %}
+                        <option value="{{ size }}">{{ size }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-top: 10px;">
+                    <label for="quantity_input">Количество:</label>
+                    <input type="number" id="quantity_input" name="quantity"
+                           class="form-control"
+                           value="1" min="1" max="10">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    {% if current_user.is_authenticated %}
+                        {% if product.available %}
+                        <button type="submit" class="btn btn-add-to-cart">
+                            <i class="fas fa-shopping-cart"></i> Добавить в корзину
+                        </button>
+                        {% else %}
+                        <button type="button" class="btn" disabled>
+                            Нет в наличии
+                        </button>
+                        {% endif %}
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-add-to-cart">
+                            <i class="fas fa-sign-in-alt"></i> Войдите, чтобы купить
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+
+            <table class="specs-table">
+                <tr>
+                    <td>Бренд:</td>
+                    <td>{{ product.brand }}</td>
+                </tr>
+                <tr>
+                    <td>Категория:</td>
+                    <td>
+                        {% if product.category == 'sneakers' %}Кроссовки
+                        {% elif product.category == 'boots' %}Ботинки
+                        {% elif product.category == 'formal' %}Туфли
+                        {% elif product.category == 'casual' %}Повседневная
+                        {% elif product.category == 'sports' %}Спортивная
+                        {% else %}{{ product.category }}
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Доступные размеры:</td>
+                    <td>{{ product.available_sizes.replace(',', ', ') }}</td>
+                </tr>
+                <tr>
+                    <td>Цвет:</td>
+                    <td>{{ product.color }}</td>
+                </tr>
+                <tr>
+                    <td>Материал:</td>
+                    <td>{{ product.material }}</td>
+                </tr>
+                <tr>
+                    <td>Наличие:</td>
+                    <td>
+                        {% if product.available %}
+                            <span style="color: #27ae60; font-weight: bold;">В наличии</span>
+                        {% else %}
+                            <span style="color: #e74c3c; font-weight: bold;">Нет в наличии</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+
+            <a href="{{ url_for('index') }}" class="btn btn-view" style="margin-top: 20px;">
+                <i class="fas fa-arrow-left"></i> Вернуться к покупкам
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Блок отзывов -->
+<div style="margin-top:40px;">
+    <h2 style="font-size:20px; margin-bottom:15px;">Отзывы покупателей</h2>
+
+    {% if reviews %}
+        {% for review in reviews %}
+        <div style="border:1px solid #eee; border-radius:6px; padding:12px 15px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong>{{ review.author.get_full_name() }}</strong>
+                    <span style="color:#f1c40f; margin-left:8px;">
+                        {% for i in range(1,6) %}
+                            {% if i <= review.rating %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+                <small style="color:#999;">{{ review.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+            </div>
+            {% if review.title %}
+            <div style="margin-top:4px; font-weight:600;">{{ review.title }}</div>
+            {% endif %}
+            <div style="margin-top:4px; font-size:13px; color:#555;">
+                {{ review.content|nl2br }}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p style="color:#666;">Отзывов пока нет. Будьте первым!</p>
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+    <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
+        <h3 style="font-size:16px; margin-bottom:10px;">
+            {% if user_review %}Обновить свой отзыв{% else %}Оставить отзыв{% endif %}
+        </h3>
+        <form method="POST" action="{{ url_for('add_review', product_id=product.id) }}">
+            <div class="form-group">
+                <label for="rating">Оценка:</label>
+                <select id="rating" name="rating" class="form-control" required>
+                    {% for r in range(1,6) %}
+                    <option value="{{ r }}"
+                        {% if user_review and user_review.rating == r %}selected{% endif %}>
+                        {{ r }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="title">Заголовок (необязательно):</label>
+                <input type="text" id="title" name="title" class="form-control"
+                       value="{{ user_review.title if user_review and user_review.title else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="content">Текст отзыва:</label>
+                <textarea id="content" name="content" class="form-control" rows="4" required>{{ user_review.content if user_review else '' }}</textarea>
+            </div>
+            <button type="submit" class="btn">
+                {% if user_review %}Обновить отзыв{% else %}Отправить отзыв{% endif %}
+            </button>
+        </form>
+    </div>
+    {% else %}
+    <p style="margin-top:15px; font-size:13px;">
+        <a href="{{ url_for('login') }}">Войдите</a>, чтобы оставить отзыв.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}

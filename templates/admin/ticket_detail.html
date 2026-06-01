@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Обращение #{{ ticket.ticket_number }} - Админ панель - Shoe35{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>
+            <i class="fas fa-headset"></i> Обращение #{{ ticket.ticket_number }}
+            <span class="ticket-status-badge status-{{ ticket.status }}">
+                {% if ticket.status == 'open' %}Открыто
+                {% elif ticket.status == 'in_progress' %}В работе
+                {% elif ticket.status == 'resolved' %}Решено
+                {% elif ticket.status == 'closed' %}Закрыто
+                {% endif %}
+            </span>
+        </h1>
+
+        <div class="ticket-actions">
+            <a href="{{ url_for('admin_support') }}" class="btn btn-view">
+                <i class="fas fa-arrow-left"></i> Назад к списку
+            </a>
+
+            <div class="status-buttons">
+                <a href="{{ url_for('change_ticket_status', ticket_id=ticket.id, status='in_progress') }}"
+                   class="btn" style="background: #f39c12;">
+                    <i class="fas fa-cogs"></i> В работу
+                </a>
+                <a href="{{ url_for('change_ticket_status', ticket_id=ticket.id, status='resolved') }}"
+                   class="btn" style="background: #27ae60;">
+                    <i class="fas fa-check"></i> Решено
+                </a>
+                <a href="{{ url_for('change_ticket_status', ticket_id=ticket.id, status='closed') }}"
+                   class="btn" style="background: #95a5a6;">
+                    <i class="fas fa-times"></i> Закрыть
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="ticket-detail-container">
+        <!-- Информация об обращении -->
+        <div class="ticket-info-section">
+            <h2><i class="fas fa-info-circle"></i> Информация об обращении</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Номер обращения:</span>
+                    <span class="info-value">{{ ticket.ticket_number }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Тип обращения:</span>
+                    <span class="info-value type-badge type-{{ ticket.ticket_type }}">
+                        {% if ticket.ticket_type == 'complaint' %}
+                        Жалоба
+                        {% elif ticket.ticket_type == 'gratitude' %}
+                        Благодарность
+                        {% elif ticket.ticket_type == 'suggestion' %}
+                        Предложение
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Статус:</span>
+                    <span class="info-value status-badge status-{{ ticket.status }}">
+                        {% if ticket.status == 'open' %}Открыто
+                        {% elif ticket.status == 'in_progress' %}В работе
+                        {% elif ticket.status == 'resolved' %}Решено
+                        {% elif ticket.status == 'closed' %}Закрыто
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Дата создания:</span>
+                    <span class="info-value">{{ ticket.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Последнее обновление:</span>
+                    <span class="info-value">{{ ticket.updated_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация о пользователе -->
+        <div class="user-info-section">
+            <h2><i class="fas fa-user"></i> Информация о пользователе</h2>
+
+            <div class="user-card">
+                <div class="user-header">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="user-details">
+                        <h3>{{ ticket.user.username }}</h3>
+                        <p>{{ ticket.user.email }}</p>
+                        <p>
+                            {% if ticket.user.phone %}
+                            {{ ticket.user.phone }}
+                            {% else %}
+                            Телефон не указан
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="user-stats">
+                    <div class="stat">
+                        <span class="stat-label">Заказов</span>
+                        <span class="stat-value">{{ ticket.user.orders|length }}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Обращений</span>
+                        <span class="stat-value">{{ ticket.user.support_tickets|length }}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Регистрация</span>
+                        <span class="stat-value">{{ ticket.user.created_at.strftime('%d.%m.%Y') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сообщение пользователя -->
+        <div class="message-section user-message">
+            <h2><i class="fas fa-comment"></i> Сообщение пользователя</h2>
+
+            <div class="message-header">
+                <strong>Тема: {{ ticket.subject }}</strong>
+                <span class="message-date">
+                    {{ ticket.created_at.strftime('%d.%m.%Y %H:%M') }}
+                </span>
+            </div>
+
+            <div class="message-content">
+                {{ ticket.message|nl2br }}
+            </div>
+        </div>
+
+        <!-- Ответ администратора -->
+        <div class="message-section admin-response">
+            <h2><i class="fas fa-reply"></i> Ответ администратора</h2>
+
+            {% if ticket.admin_response %}
+            <div class="message-header">
+                <strong>Ответ от администратора</strong>
+                <span class="message-date">
+                    {{ ticket.updated_at.strftime('%d.%m.%Y %H:%M') }}
+                </span>
+            </div>
+
+            <div class="message-content">
+                {{ ticket.admin_response|nl2br }}
+            </div>
+            {% else %}
+            <div class="no-response">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>На это обращение еще не ответили</p>
+            </div>
+            {% endif %}
+
+            <!-- Форма ответа -->
+            <form method="POST" action="{{ url_for('respond_to_ticket', ticket_id=ticket.id) }}"
+                  class="response-form">
+                <div class="form-group">
+                    <label for="admin_response">Ваш ответ:</label>
+                    <textarea id="admin_response" name="admin_response"
+                              class="form-control" rows="5"
+                              placeholder="Введите ваш ответ пользователю...">{{ ticket.admin_response or '' }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Изменить статус:</label>
+                    <select id="status" name="status" class="form-control">
+                        <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Открыто</option>
+                        <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>В работе</option>
+                        <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Решено</option>
+                        <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Закрыто</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn">
+                        <i class="fas fa-paper-plane"></i> Отправить ответ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

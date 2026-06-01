@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Обращения - Shoe35{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Навигация по вкладкам -->
+    <div class="profile-tabs">
+        <a href="{{ url_for('profile', tab='profile') }}" class="profile-tab">
+            <i class="fas fa-user"></i> Профиль
+        </a>
+        <a href="{{ url_for('profile', tab='orders') }}" class="profile-tab">
+            <i class="fas fa-shopping-bag"></i> Заказы
+        </a>
+        <a href="{{ url_for('profile', tab='addresses') }}" class="profile-tab">
+            <i class="fas fa-map-marker-alt"></i> Адреса
+        </a>
+        <a href="{{ url_for('profile', tab='support') }}" class="profile-tab active">
+            <i class="fas fa-headset"></i> Обращения
+            <span class="tab-badge">{{ tickets|length if tickets else 0 }}</span>
+        </a>
+    </div>
+    
+    <div class="profile-content">
+        <div class="profile-header">
+            <h1><i class="fas fa-headset"></i> Обращения в поддержку</h1>
+            <p class="profile-subtitle">Свяжитесь с нами по любым вопросам</p>
+        </div>
+
+        <!-- Список обращений -->
+        {% if tickets %}
+        <div class="tickets-list">
+            {% for ticket in tickets %}
+            <div class="ticket-card status-{{ ticket.status }}">
+                <div class="ticket-header">
+                    <div class="ticket-info">
+                        <h3>{{ ticket.subject }}</h3>
+                        <div class="ticket-meta">
+                            <span class="ticket-number">#{{ ticket.ticket_number }}</span>
+                            <span class="ticket-date">
+                                <i class="far fa-calendar"></i> {{ ticket.created_at.strftime('%d.%m.%Y %H:%M') }}
+                            </span>
+                            <span class="ticket-type type-{{ ticket.ticket_type }}">
+                                {% if ticket.ticket_type == 'complaint' %}
+                                Жалоба
+                                {% elif ticket.ticket_type == 'gratitude' %}
+                                Благодарность
+                                {% elif ticket.ticket_type == 'suggestion' %}
+                                Предложение
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="ticket-status">
+                        <span class="status-badge status-{{ ticket.status }}">
+                            {% if ticket.status == 'open' %}
+                            Открыто
+                            {% elif ticket.status == 'in_progress' %}
+                            В работе
+                            {% elif ticket.status == 'resolved' %}
+                            Решено
+                            {% elif ticket.status == 'closed' %}
+                            Закрыто
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="ticket-body">
+                    <div class="ticket-message">
+                        <strong>Ваше сообщение:</strong>
+                        <p>{{ ticket.message }}</p>
+                    </div>
+
+                    {% if ticket.admin_response %}
+                    <div class="ticket-response">
+                        <strong><i class="fas fa-reply"></i> Ответ администратора:</strong>
+                        <p>{{ ticket.admin_response }}</p>
+                        <small class="response-date">
+                            Ответ получен: {{ ticket.updated_at.strftime('%d.%m.%Y %H:%M') }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-comments" style="font-size: 48px; color: #ddd; margin-bottom: 20px;"></i>
+            <h3 style="color: #333; margin-bottom: 10px;">Обращений пока нет</h3>
+            <p style="color: #666; margin-bottom: 25px;">Создайте первое обращение, если у вас есть вопросы или предложения</p>
+        </div>
+        {% endif %}
+
+        <!-- Форма создания обращения (всегда видна) -->
+        <div class="create-ticket-section">
+            <h3 style="margin-bottom: 10px;">Создать новое обращение</h3>
+            <p style="color:#666; font-size:12px; margin-bottom:15px;">
+                Заполните форму ниже, и мы свяжемся с вами в ближайшее время.
+            </p>
+        </div>
+
+        <div id="ticket-form-container">
+            <div class="form-section">
+                <h3><i class="fas fa-headset"></i> Новое обращение</h3>
+
+                <form method="POST" action="{{ url_for('create_support_ticket') }}" id="ticket-form">
+                    <div class="form-group">
+                        <label for="ticket_type">Тип обращения:</label>
+                        <select id="ticket_type" name="ticket_type" class="form-control" required>
+                            <option value="">Выберите тип обращения</option>
+                            <option value="complaint">Жалоба</option>
+                            <option value="gratitude">Благодарность</option>
+                            <option value="suggestion">Предложение</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject">Тема обращения:</label>
+                        <input type="text" id="subject" name="subject"
+                               class="form-control" required
+                               placeholder="Опишите кратко суть обращения">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Сообщение:</label>
+                        <textarea id="message" name="message"
+                                  class="form-control" required
+                                  rows="6"
+                                  placeholder="Подробно опишите вашу проблему, предложение или благодарность..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="ticket-info-box">
+                            <h4><i class="fas fa-info-circle"></i> Информация:</h4>
+                            <ul>
+                                <li>Обычно мы отвечаем в течение 24 часов</li>
+                                <li>Для жалоб укажите номер заказа (если есть)</li>
+                                <li>Для предложений будьте максимально конкретны</li>
+                                <li>Все обращения обрабатываются в порядке очереди</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn">
+                            <i class="fas fa-paper-plane"></i> Отправить обращение
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Стили для обращений (твои старые стили можно оставить как есть) */
+</style>
+{% endblock %}
